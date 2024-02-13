@@ -7,6 +7,7 @@ library work;
 
 entity EthBaseRegMap is
    generic (
+      N_QDA_PORTS : natural := 8;
       Version : std_logic_vector(31 downto 0) := x"0000_0000"
    );
    port (
@@ -21,11 +22,21 @@ entity EthBaseRegMap is
       wen         : in  std_logic;
       ack         : out std_logic;
 
+      -- QDA Node values
+      qdaMask         : out std_logic_vector(N_QDA_PORTS - 1 downto 0);
+      qdaPacketLength : out std_logic_vector(31 downto 0);
+      qda_fifo_valid  : in  std_logic;
+      qda_fifo_empty  : in  std_logic;
+      qda_fifo_full   : in  std_logic;
+      qda_fifo_hits   : in  std_logic_vector(31 downto 0);
+      qda_fifo_ren    : out std_logic;
+
       -- QDA config signals
-      TxDisable : out std_logic_vector(3 downto 0);
-      IntSoft   : out std_logic;
-      IntHard   : out std_logic;
-      DigReset  : out std_logic;
+      EndeavorScale : out std_logic_vector(2 downto 0);
+      TxDisable     : out std_logic_vector(3 downto 0);
+      IntSoft       : out std_logic;
+      IntHard       : out std_logic;
+      DigReset      : out std_logic;
 
       -- QDA debug signals
       dFsmState    : in std_logic_vector(2 downto 0);
@@ -48,6 +59,7 @@ architecture behav of EthBaseRegMap is
 
    -- debug input signals
    signal s_TxDisable   : std_logic_vector(3 downto 0);
+   signal s_EndeavorScale   : std_logic_vector(3 downto 0);
 
    type debugIn is record
       dFsmState    : std_logic_vector(2 downto 0);
@@ -107,8 +119,9 @@ begin
 
    -- reg signals assined to ports
    TxDisable <= s_TxDisable;
+   EndeavorScale <= s_EndeavorScale;
 
-   process (clk, s_TxDisable, rDebugOut, rDebugIn)
+   process (clk, s_TxDisable, s_EndeavorScale, rDebugOut, rDebugIn)
       variable count : std_logic_vector(31 downto 0) := (others => '0');
    begin
       if rising_edge (clk) then
@@ -163,6 +176,45 @@ begin
                   when others =>
                      rDebugOut <= pulseDebugOut_C;
                end case;
+
+            -- end scale
+            when 5 =>
+               if wen = '1' and req = '1' then
+                  s_EndeavorScale <= wdata(2 downto 0);
+               else
+                  rdata(2 downto 0) <= s_EndeavorScale;
+               end if;
+
+            -- The QDA Node Registers
+            when 50 =>
+               if wen = '1' and req = '1' then
+                  qdaMask <= wdata(N_QDA_PORTS - 1 downto 0);
+               end if;
+
+            -- QDA FIFO values
+            when 51    =>
+               rdata(2 downto 0) <= qda_fifo_empty & qda_fifo_full & qda_fifo_valid;
+
+            when 52    =>
+               if qda_fifo_empty /= '1' then
+                  rdata <= qda_fifo_data(63 downto 32);
+               else
+                  rdata <= x"fabcdef8";
+               end if;
+
+            when 53 =>
+               rdata    <= (others => '0');
+
+            when 55 =>
+               if wen = '1' and req = '1' then
+                  qdaPacketLength <= wdata;
+               else
+                  rdata <= qdaPacketLength;
+               end if;
+
+            when 56 =>
+               rdata <= qda_fifo_hits;
+
 
             when others =>
                rdata <= x"aBAD_ADD0";

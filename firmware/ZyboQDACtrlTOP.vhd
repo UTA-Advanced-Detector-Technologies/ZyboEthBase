@@ -94,6 +94,22 @@ architecture Behavioral of ZyboQDACtrl is
    signal fclk : std_logic;
    signal rst  : std_logic := '0';
 
+   -- QDA Data node
+   constant N_QDA_PORTS    : natural   := 4;
+   constant TIMESTAMP_BITS : natural   := 32;
+   signal QDAMask          : std_logic_vector(N_QDA_PORTS - 1 downto 0);
+   signal QDAPacketLength  : std_logic_vector(31 downto 0);
+   signal QDAPortData      : std_logic_vector(N_QDA_PORTS - 1 downto 0);
+   signal QDA_fifo_data    : std_logic_vector(63 downto 0);
+   signal QDA_fifo_valid   : std_logic := '0';
+   signal QDA_fifo_empty   : std_logic := '0';
+   signal QDA_fifo_full    : std_logic := '0';
+   signal QDA_fifo_ren     : std_logic := '0';
+   signal QDA_fifo_hits    : std_logic_vector(31 downto 0);
+
+   -- QDA config
+   signal sEndeavorScale : std_logic_vector(2 downto 0);
+
     -- ps-pl axi
    signal axi_resetn  : std_logic_vector(0 downto 0) := (others => '1');
    signal axi_awaddr  : std_logic_vector (31 downto 0);
@@ -185,6 +201,9 @@ begin
     led6_r <= pulse_red6;
     led6_b <= pulse_blu6;
     led6_g <= pulse_gre6;
+
+
+    EndeavorScale <= sEndeavorScale;
 
 
   ---------------------------------------------------
@@ -360,22 +379,70 @@ begin
      wen          => reg_wen,
      ack          => reg_ack,
 
-     -- byte data IO
-      TxDisable => TxDisable,
-      IntSoft   => IntSoft,
-      IntHard   => IntHard,
-      DigReset  => DigReset,
+     -- qda register
 
-      -- QDA debug signals
-      dFsmState    => dFsmState,
-      dLocFifoFull => dLocFifoFull,
-      dExtFifoFull => dExtFifoFull,
-      dRxBusy      => dRxBusy,
-      dRxValid     => dRxValid,
-      dRxError     => dRxError,
-      dTxBusy      => dTxBusy,
-      dDataValid   => dDataValid
+     -- byte data IO
+     EndeavorScale => sEndeavorScale,
+     TxDisable     => TxDisable,
+     IntSoft       => IntSoft,
+     IntHard       => IntHard,
+     DigReset      => DigReset,
+
+     -- QDA debug signals
+     dFsmState    => dFsmState,
+     dLocFifoFull => dLocFifoFull,
+     dExtFifoFull => dExtFifoFull,
+     dRxBusy      => dRxBusy,
+     dRxValid     => dRxValid,
+     dRxError     => dRxError,
+     dTxBusy      => dTxBusy,
+     dDataValid   => dDataValid,
+
+     -- QDA Node interactions
+     qdaMask         => QDAMask,
+     qdaPacketLength => QDAPacketLength,
+     qda_fifo_hits   => QDA_fifo_hits,
+     qda_fifo_valid  => QDA_fifo_valid,
+     qda_fifo_full   => QDA_fifo_full,
+     qda_fifo_empty  => QDA_fifo_empty,
+     qda_fifo_ren    => QDA_fifo_ren,
+     qda_fifo_data   => QDA_fifo_data
   );
+
+   ---------------------------------------------------
+   -- QDA node, manage the 4 Tx / Rx lines from the QDA
+   ---------------------------------------------------
+  QDANode_U : entity work.QDANode
+   generic map(
+   N_QDA_PORTS    => N_QDA_PORTS,
+   TIMESTAMP_BITS => TIMESTAMP_BITS)
+   port map(
+      clk         => fclk,
+      rst         => rst,
+
+      EndeavorScale => sEndeavorScale,
+
+      QTx => QTx,
+      QRx => QRx,
+
+      QDAPortData => QDAPortData,
+      QDAReadEn   => QDA_fifo_ren,
+      QDADataOut  => QDA_fifo_data,
+
+      -- AXI Output to UDP
+      S_AXI_0_tdata   => S_AXI_0_tdata,
+      S_AXI_0_tready  => S_AXI_0_tready,
+      S_AXI_0_tlast   => S_AXI_0_tlast,
+      S_AXI_0_tvalid  => S_AXI_0_tvalid,
+
+      -- Register Pins
+      valid           => QDA_fifo_valid,
+      empty           => QDA_fifo_empty,
+      full            => QDA_fifo_full,
+      QDAHits         => QDA_fifo_hits,
+      QDAMask         => QDAMask,
+      QDAPacketLength => QDAPacketLength
+   );
 
 
 -- pulse relevant LEDs
