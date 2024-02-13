@@ -14,9 +14,9 @@ port (
    sw        : in std_logic_vector(3 downto 0);
 
    -- led_5
-  led5_r : out std_logic;
-  led5_b : out std_logic;
-  led5_g : out std_logic;
+   led5_r : out std_logic;
+   led5_b : out std_logic;
+   led5_g : out std_logic;
 
    -- led_6
    led6_r : out std_logic;
@@ -97,6 +97,8 @@ architecture Behavioral of ZyboQDACtrl is
    -- QDA Data node
    constant N_QDA_PORTS    : natural   := 4;
    constant TIMESTAMP_BITS : natural   := 32;
+   signal QDAByte          : std_logic_vector(63 downto 0);
+   signal QDAsend          : std_logic;
    signal QDAMask          : std_logic_vector(N_QDA_PORTS - 1 downto 0);
    signal QDAPacketLength  : std_logic_vector(31 downto 0);
    signal QDA_fifo_valid   : std_logic := '0';
@@ -200,9 +202,7 @@ begin
     led6_b <= pulse_blu6;
     led6_g <= pulse_gre6;
 
-
     EndeavorScale <= sEndeavorScale;
-
 
   ---------------------------------------------------
   -- Channel Maps
@@ -377,8 +377,6 @@ begin
      wen          => reg_wen,
      ack          => reg_ack,
 
-     -- qda register
-
      -- byte data IO
      EndeavorScale => sEndeavorScale,
      TxDisable     => TxDisable,
@@ -397,13 +395,15 @@ begin
      dDataValid   => dDataValid,
 
      -- QDA Node interactions
-     qdaMask         => QDAMask,
-     qdaPacketLength => QDAPacketLength,
-     qda_fifo_valid  => QDA_fifo_valid,
-     qda_fifo_empty  => QDA_fifo_empty,
-     qda_fifo_full   => QDA_fifo_full,
-     qda_fifo_hits   => QDA_fifo_hits,
-     qda_fifo_ren    => QDA_fifo_ren
+     QDAByte         => QDAByte,
+     QDASend         => QDASend,
+     QDAMask         => QDAMask,
+     QDAPacketLength => QDAPacketLength,
+     QDA_fifo_valid  => QDA_fifo_valid,
+     QDA_fifo_empty  => QDA_fifo_empty,
+     QDA_fifo_full   => QDA_fifo_full,
+     QDA_fifo_hits   => QDA_fifo_hits,
+     QDA_fifo_ren    => QDA_fifo_ren
   );
 
    ---------------------------------------------------
@@ -428,6 +428,8 @@ begin
       S_AXI_0_tvalid  => S_AXI_0_tvalid,
 
       -- Register Pins
+      QDAByte         => QDAByte,
+      QDASend         => QDASend,
       QDAMask         => QDAMask,
       QDAPacketLength => QDAPacketLength,
       valid           => QDA_fifo_valid,
@@ -465,9 +467,9 @@ begin
     if rising_edge(fclk) then
 
       -- LED Flashing conditions
-       cr5 := dRxValid = '1';
-       cg5 := dRxBusy = '1';
-       cb5 := dRxError = '1';
+       cr5 := QDASend = '1';
+       cg5 := false;
+       cb5 := false;
 
        cr6 := dLocFifoFull = '1';
        cg6 := dExtFifoFull = '1';

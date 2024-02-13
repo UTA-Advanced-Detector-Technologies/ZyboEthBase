@@ -23,6 +23,8 @@ entity EthBaseRegMap is
       ack         : out std_logic;
 
       -- QDA Node values
+      QDAByte         : out std_logic_vector(63 downto 0);
+      QDASend         : out std_logic;
       QDAMask         : out std_logic_vector(N_QDA_PORTS - 1 downto 0);
       QDAPacketLength : out std_logic_vector(31 downto 0);
       QDA_fifo_hits   : in  std_logic_vector(31 downto 0);
@@ -118,7 +120,7 @@ begin
    a_reg_addr <= addr(10 downto 2);
 
    -- reg signals assined to ports
-   TxDisable <= s_TxDisable;
+   TxDisable     <= s_TxDisable;
    EndeavorScale <= s_EndeavorScale;
 
    process (clk, s_TxDisable, s_EndeavorScale, rDebugOut, rDebugIn)
@@ -126,10 +128,10 @@ begin
    begin
       if rising_edge (clk) then
 
-
          -- defaults
          ack   <= req;
          count := count + 1;
+         QDASend <= '0';
 
          -- reg mapping
          case to_integer(unsigned(a_reg_addr)) is
@@ -189,6 +191,7 @@ begin
             when 50 =>
                if wen = '1' and req = '1' then
                   QDAMask <= wdata(N_QDA_PORTS - 1 downto 0);
+                  QDASend <= '1';
                end if;
 
             -- QDA FIFO values
@@ -203,6 +206,14 @@ begin
 
             when 54 =>
                rdata <= QDA_fifo_hits;
+
+            -- QDA Byte low
+            when 55 =>
+               QDAByte(31 downto 0) <= wdata;
+
+            -- QDA Byte high
+            when 56 =>
+               QDAByte(63 downto 32) <= wdata;
 
             when others =>
                rdata <= x"aBAD_ADD0";

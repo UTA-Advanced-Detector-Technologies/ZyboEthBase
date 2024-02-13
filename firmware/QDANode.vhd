@@ -52,6 +52,8 @@ port (
   S_AXI_0_tvalid  : out STD_LOGIC;
 
   -- Register Pins
+  QDAByte         : in  slv(63 downto 0); -- byte to send out on tx port
+  QDASend         : in  sl; -- pulse input to send a tx byte
   QDAMask         : in  slv(N_QDA_PORTS - 1 downto 0);
   qdaPacketLength : in  slv(31 downto 0);
   valid           : out sl;
@@ -107,12 +109,14 @@ begin  -- architecture QDANode
   QDA_fifo_Hits <= std_logic_vector(n_qda_hits);
   
   -- keep track of how many hits we've received
-  process(clk, fifo_valid, n_qda_hits, rxByteValid, rxByteAck, rxByte) begin
+  process(clk, fifo_valid, n_qda_hits, rxByteValid, rxByteAck, rxByte)
+  begin
     if rising_edge(clk) then
         if fifo_valid = '1' then
             n_qda_hits <= n_qda_hits + 1;
         end if;
 
+        -- choose to write fifo_din with rxByte
         for i in 0 to 3 loop
           -- received a valid byte on this channel
           if rxByteValid(i) = '1' then
@@ -120,8 +124,20 @@ begin  -- architecture QDANode
             fifo_wr_en   <= '1';
             rxByteAck    <= (others => '0');
             rxByteAck(i) <= '1';
+            send_rx := false;
           end if;
-        end loop;  -- i
+        end loop;
+
+        -- attempt to send on every masked output
+        if QDASend = '1' then
+          for i in 0 to 3 loop
+            if QDAMask(i) = '1' and txByteReady(i) = '1' then
+              txByte(i)      <= QDAByte;
+              txByteValid(i) <= '1';
+            end if;
+          end loop;
+        end if;
+
     end if;
   end process;
 
