@@ -36,16 +36,12 @@ entity QpixEndeavorTop is
       -- RX out
       rxByte      : out std_logic_vector(NUM_BITS_G-1 downto 0);
       rxByteValid : out std_logic;
-      rxState     : out std_logic_vector(2 downto 0);
       rxByteAck   : in  std_logic;   
       -- RX Error statuses out
       rxFrameErr  : out std_logic; -- No valid stop bit found
       rxBreakErr  : out std_logic; -- Line low for longer than a character time
-
       rxBusy      : out std_logic;
       rxError     : out std_logic;
-      rxGapErr    : out std_logic; -- ??
-
       -- TX in 
       txByte      : in  std_logic_vector(NUM_BITS_G-1 downto 0) := (others => '0');
       txByteValid : in  std_logic := '0';
@@ -79,25 +75,19 @@ begin
          -- Clock and reset
          clk         => clk,
          sRst        => sRst,
-
          scale       => scale,
          disable     => TxRxDisable,
-         rxBusy      => rxBusy
-
-         
-		 -- Byte signal out
-         rxByte      => rxByte,      -- output
-         rxByteValid => rxByteValid, -- output
-         rxState     => rxState,     -- output
+         -- Byte signal out
+         rxByte      => rxByte,
+         rxByteValid => rxByteValid,
          rxByteAck   => rxByteAck,
-         
-		 -- Error statuses out
-         bitError    => rxFrameErr, -- output
-         lenError    => rxBreakErr, -- output
-         gapError    => rxGapErr,   -- output
+         -- Error statuses out
+         bitError    => rxFrameErr,
+         lenError    => rxBreakErr,
+         rxError     => rxError,
 
-         Rx          => Rx -- input
-
+         Rx          => Rx,
+         rxBusy      => rxBusy
       );
    
    -- Transmit UART TX bytes
@@ -122,7 +112,7 @@ begin
          txByte      => txByte,
          txByteValid => txByteValid,
          tx          => Tx      
-
       );
 
 end Behavioral;
+
