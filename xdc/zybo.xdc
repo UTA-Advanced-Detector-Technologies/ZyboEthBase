@@ -48,10 +48,10 @@ set_property -dict {PACKAGE_PIN T16 IOSTANDARD LVCMOS33} [get_ports {sw[3]}]
 
 
 ##Buttons
-set_property -dict { PACKAGE_PIN K18   IOSTANDARD LVCMOS33 } [get_ports { btn[0] }]; #IO_L12N_T1_MRCC_35 Sch=btn[0]
-set_property -dict { PACKAGE_PIN P16   IOSTANDARD LVCMOS33 } [get_ports { btn[1] }]; #IO_L24N_T3_34 Sch=btn[1]
-set_property -dict { PACKAGE_PIN K19   IOSTANDARD LVCMOS33 } [get_ports { btn[2] }]; #IO_L10P_T1_AD11P_35 Sch=btn[2]
-set_property -dict { PACKAGE_PIN Y16   IOSTANDARD LVCMOS33 } [get_ports { btn[3] }]; #IO_L7P_T1_34 Sch=btn[3]
+#set_property -dict { PACKAGE_PIN K18   IOSTANDARD LVCMOS33 } [get_ports { btn[0] }]; #IO_L12N_T1_MRCC_35 Sch=btn[0]
+#set_property -dict { PACKAGE_PIN P16   IOSTANDARD LVCMOS33 } [get_ports { btn[1] }]; #IO_L24N_T3_34 Sch=btn[1]
+#set_property -dict { PACKAGE_PIN K19   IOSTANDARD LVCMOS33 } [get_ports { btn[2] }]; #IO_L10P_T1_AD11P_35 Sch=btn[2]
+#set_property -dict { PACKAGE_PIN Y16   IOSTANDARD LVCMOS33 } [get_ports { btn[3] }]; #IO_L7P_T1_34 Sch=btn[3]
 
 
 #LEDs
@@ -130,24 +130,24 @@ set_property -dict {PACKAGE_PIN M17 IOSTANDARD LVCMOS33} [get_ports led6_b]
 #set_property -dict { PACKAGE_PIN E19   IOSTANDARD LVCMOS33 } [get_ports { hdmi_tx_cec }]; #IO_L5N_T0_AD9N_35 Sch=hdmi_tx_cec
 
 ##Pmod Header JA (XADC)
-set_property -dict {PACKAGE_PIN N15 IOSTANDARD LVDS} [get_ports {QDA_IN_A_p}]
-set_property -dict {PACKAGE_PIN L14 IOSTANDARD LVDS} [get_ports {QDA_IN_A_n}]
-set_property -dict {PACKAGE_PIN K16 IOSTANDARD LVDS} [get_ports {QDA_IN_B_p}]
-set_property -dict {PACKAGE_PIN K14 IOSTANDARD LVDS} [get_ports {QDA_IN_B_n}]
-set_property -dict {PACKAGE_PIN K16 IOSTANDARD LVDS} [get_ports {QDA_OUT_A_p}]
-set_property -dict {PACKAGE_PIN K14 IOSTANDARD LVDS} [get_ports {QDA_OUT_A_n}]
-set_property -dict {PACKAGE_PIN J16 IOSTANDARD LVDS} [get_ports {QDA_OUT_B_p}]
-set_property -dict {PACKAGE_PIN J14 IOSTANDARD LVDS} [get_ports {QDA_OUT_B_n}]
+set_property -dict {PACKAGE_PIN N15 IOSTANDARD TMDS_33} [get_ports {QDA_IN_A_p}]
+set_property -dict {PACKAGE_PIN L14 IOSTANDARD TMDS_33} [get_ports {QDA_OUT_A_p}]
+set_property -dict {PACKAGE_PIN K16 IOSTANDARD TMDS_33} [get_ports {QDA_IN_B_p}]
+set_property -dict {PACKAGE_PIN K14 IOSTANDARD TMDS_33} [get_ports {QDA_OUT_B_p}]
+set_property -dict {PACKAGE_PIN N16 IOSTANDARD TMDS_33} [get_ports {QDA_IN_A_n}]
+set_property -dict {PACKAGE_PIN L15 IOSTANDARD TMDS_33} [get_ports {QDA_OUT_A_n}]
+set_property -dict {PACKAGE_PIN J16 IOSTANDARD TMDS_33} [get_ports {QDA_IN_B_n}]
+set_property -dict {PACKAGE_PIN J14 IOSTANDARD TMDS_33} [get_ports {QDA_OUT_B_n}]
 
 ##Pmod Header JB (Zybo Z7-20 only)
-set_property -dict {PACKAGE_PIN V8 IOSTANDARD LVDS} [get_ports {QDA_IN_C_p}]
-set_property -dict {PACKAGE_PIN W8 IOSTANDARD LVDS} [get_ports {QDA_IN_C_n}]
-set_property -dict {PACKAGE_PIN U7 IOSTANDARD LVDS} [get_ports {QDA_IN_D_p}]
-set_property -dict {PACKAGE_PIN V7 IOSTANDARD LVDS} [get_ports {QDA_IN_D_n}]
-set_property -dict {PACKAGE_PIN Y7 IOSTANDARD LVDS} [get_ports {QDA_OUT_C_p}]
-set_property -dict {PACKAGE_PIN Y6 IOSTANDARD LVDS} [get_ports {QDA_OUT_C_n}]
-set_property -dict {PACKAGE_PIN V6 IOSTANDARD LVDS} [get_ports {QDA_OUT_D_p}]
-set_property -dict {PACKAGE_PIN W6 IOSTANDARD LVDS} [get_ports {QDA_OUT_D_n}]
+set_property -dict {PACKAGE_PIN V8 IOSTANDARD TMDS_33} [get_ports {QDA_IN_C_p}]
+set_property -dict {PACKAGE_PIN W8 IOSTANDARD TMDS_33} [get_ports {QDA_IN_C_n}]
+set_property -dict {PACKAGE_PIN U7 IOSTANDARD TMDS_33} [get_ports {QDA_IN_D_p}]
+set_property -dict {PACKAGE_PIN V7 IOSTANDARD TMDS_33} [get_ports {QDA_IN_D_n}]
+set_property -dict {PACKAGE_PIN Y7 IOSTANDARD TMDS_33} [get_ports {QDA_OUT_C_p}]
+set_property -dict {PACKAGE_PIN Y6 IOSTANDARD TMDS_33} [get_ports {QDA_OUT_C_n}]
+set_property -dict {PACKAGE_PIN V6 IOSTANDARD TMDS_33} [get_ports {QDA_OUT_D_p}]
+set_property -dict {PACKAGE_PIN W6 IOSTANDARD TMDS_33} [get_ports {QDA_OUT_D_n}]
 
 ###Pmod Header JC
 set_property -dict {PACKAGE_PIN V15 IOSTANDARD LVCMOS33} [get_ports {dFsmState[0]}]

@@ -34,23 +34,16 @@ use work.UtilityPkg.all;
 
 entity QDANode is
 generic (
-  N_QDA_PORTS    : natural := 8;
+  N_QDA_PORTS    : natural := 4;
   TIMESTAMP_BITS : natural := 32);      -- number of input QDA channels to zybo
 port (
   clk        : in  sl;
   rst        : in  sl;
 
   -- connect to QDAChanBuf
-  QTx : out slv(3 downto 0);
-  QRx : in slv(3 downto 0);
-
-  EndeavorScale : in slv(2 downto 0);
-
-  -- Fifo Data IO
-  QDAReadEn   : in  sl;
-  valid       : out sl;
-  empty       : out sl;
-  full        : out sl;
+  QTx           : out slv(3 downto 0);
+  QRx           : in  slv(3 downto 0);
+  EndeavorScale : in  slv(2 downto 0);
 
   -- AXI-Stream IO
   S_AXI_0_tdata   : out STD_LOGIC_VECTOR (31 downto 0);
@@ -59,8 +52,13 @@ port (
   S_AXI_0_tvalid  : out STD_LOGIC;
 
   -- Register Pins
-  qdaHits         : out slv(31 downto 0);
+  QDAMask         : in  slv(N_QDA_PORTS - 1 downto 0);
   qdaPacketLength : in  slv(31 downto 0);
+  valid           : out sl;
+  empty           : out sl;
+  full            : out sl;
+  QDA_fifo_Hits   : out slv(31 downto 0);
+  QDAReadEn       : in  sl
   );
 end QDANode;
 
@@ -68,7 +66,8 @@ architecture Behavioral of QDANode is
 
   -- QDA Ctrl signals
   constant emtpy_bits    : slv(64 - N_QDA_PORTS - TIMESTAMP_BITS - 1 downto 0) := (others => '0');
-
+  signal n_qda_hits : unsigned(31 downto 0);
+  
   type qByteArr is array (3 downto 0) of slv(63 downto 0);
 
   -- Rx signals from the QDA
@@ -85,16 +84,11 @@ architecture Behavioral of QDANode is
   signal fifo_valid : sl;
   signal fifo_empty : sl;
   signal fifo_full  : sl;
-
   signal fifo_din  : slv(63 downto 0);
   signal fifo_dout : slv(63 downto 0);
-
   signal fifo_rd_en  : sl;
   signal fifo_wr_en  : sl;
 
-  signal qda_fifo_ren : sl;
-  signal n_qda_hits : unsigned(31 downto 0);
-  
   -- s_axi signals
   signal s_axis_tvalid : sl;
   signal s_axis_tready : sl;
@@ -107,10 +101,10 @@ architecture Behavioral of QDANode is
 begin  -- architecture QDANode
 
   -- connections to entity;
-  valid      <= fifo_valid;
-  empty      <= fifo_empty;
-  full       <= fifo_full;
-  qdaHits    <= std_logic_vector(n_qda_hits);
+  valid         <= fifo_valid;
+  empty         <= fifo_empty;
+  full          <= fifo_full;
+  QDA_fifo_Hits <= std_logic_vector(n_qda_hits);
   
   -- keep track of how many hits we've received
   process(clk, fifo_valid, n_qda_hits, rxByteValid, rxByteAck, rxByte) begin
@@ -130,6 +124,7 @@ begin  -- architecture QDANode
         end loop;  -- i
     end if;
   end process;
+
 
    ---------------------------------------------------
    -- FIFO
@@ -164,7 +159,7 @@ begin  -- architecture QDANode
     -- Fifo Connections
     fifo_dout    => fifo_dout,
     fifo_wr_en   => fifo_wr_en,
-    qda_fifo_ren => qda_fifo_ren,
+    qda_fifo_ren => fifo_rd_en,
     fifo_valid   => fifo_valid,
     fifo_empty   => fifo_empty,
     fifo_full    => fifo_full,
@@ -187,21 +182,18 @@ begin  -- architecture QDANode
         clk         => clk,
         sRst        => rst,
         scale       => EndeavorScale,
-        TxRxDisable => "0000", -- don't disable any of these nodes
+        TxRxDisable => '0', -- don't disable any of these nodes
 
         -- RX out
         rxByte      => rxByte(i),
         rxByteValid => rxByteValid(i),
-        rxState     => open,
         rxByteAck   => rxByteAck(i),
 
         -- RX Error statuses out
         rxFrameErr  => open,
         rxBreakErr  => open,
-
         rxBusy      => open,
         rxError     => open,
-        rxGapErr    => open,
 
         -- TX in
         txByte      => txByte(i),

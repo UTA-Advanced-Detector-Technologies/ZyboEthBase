@@ -99,8 +99,6 @@ architecture Behavioral of ZyboQDACtrl is
    constant TIMESTAMP_BITS : natural   := 32;
    signal QDAMask          : std_logic_vector(N_QDA_PORTS - 1 downto 0);
    signal QDAPacketLength  : std_logic_vector(31 downto 0);
-   signal QDAPortData      : std_logic_vector(N_QDA_PORTS - 1 downto 0);
-   signal QDA_fifo_data    : std_logic_vector(63 downto 0);
    signal QDA_fifo_valid   : std_logic := '0';
    signal QDA_fifo_empty   : std_logic := '0';
    signal QDA_fifo_full    : std_logic := '0';
@@ -401,12 +399,11 @@ begin
      -- QDA Node interactions
      qdaMask         => QDAMask,
      qdaPacketLength => QDAPacketLength,
-     qda_fifo_hits   => QDA_fifo_hits,
      qda_fifo_valid  => QDA_fifo_valid,
-     qda_fifo_full   => QDA_fifo_full,
      qda_fifo_empty  => QDA_fifo_empty,
-     qda_fifo_ren    => QDA_fifo_ren,
-     qda_fifo_data   => QDA_fifo_data
+     qda_fifo_full   => QDA_fifo_full,
+     qda_fifo_hits   => QDA_fifo_hits,
+     qda_fifo_ren    => QDA_fifo_ren
   );
 
    ---------------------------------------------------
@@ -420,14 +417,9 @@ begin
       clk         => fclk,
       rst         => rst,
 
-      EndeavorScale => sEndeavorScale,
-
       QTx => QTx,
       QRx => QRx,
-
-      QDAPortData => QDAPortData,
-      QDAReadEn   => QDA_fifo_ren,
-      QDADataOut  => QDA_fifo_data,
+      EndeavorScale => sEndeavorScale,
 
       -- AXI Output to UDP
       S_AXI_0_tdata   => S_AXI_0_tdata,
@@ -436,12 +428,13 @@ begin
       S_AXI_0_tvalid  => S_AXI_0_tvalid,
 
       -- Register Pins
+      QDAMask         => QDAMask,
+      QDAPacketLength => QDAPacketLength,
       valid           => QDA_fifo_valid,
       empty           => QDA_fifo_empty,
       full            => QDA_fifo_full,
-      QDAHits         => QDA_fifo_hits,
-      QDAMask         => QDAMask,
-      QDAPacketLength => QDAPacketLength
+      QDA_fifo_Hits   => QDA_fifo_hits,
+      QDAReadEn       => QDA_fifo_ren
    );
 
 
