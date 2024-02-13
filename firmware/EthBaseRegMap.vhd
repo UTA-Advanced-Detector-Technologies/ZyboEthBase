@@ -70,7 +70,7 @@ architecture behav of EthBaseRegMap is
      begin
       -- return a 32 bit value
       return x"00000" & "00" & d.dFsmState & d.dLocFifoFull
-                      & d.ExtFifoFull & d.RxBusy & d.RxValid & d.dTxBudy & d.dDataValid;
+                      & d.dExtFifoFull & d.dRxBusy & d.dRxValid &d.dRxError  &d.dTxBusy & d.dDataValid;
      end function;
 
    type pulseDebugOut is record
@@ -117,7 +117,6 @@ begin
          -- defaults
          ack   <= req;
          count := count + 1;
-         data_out <= (others => '0');
 
          -- reg mapping
          case to_integer(unsigned(a_reg_addr)) is
@@ -173,7 +172,7 @@ begin
          -- reset the counter and pulse
          if count >= pulseLen then
             count := (others => '0');
-            rDebugOut := pulseDebugOut_C;
+            rDebugOut <= pulseDebugOut_C;
          end if;
 
       end if;

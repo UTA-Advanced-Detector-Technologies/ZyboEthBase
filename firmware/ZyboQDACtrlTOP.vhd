@@ -193,53 +193,53 @@ begin
   PortA_U : entity work.QDAChanBuf
   port map(
     -- Rx port from the QDA
-    port_in_p => QDB_IN_A_p,
-    port_in_n => QDB_IN_A_p,
+    port_in_p => QDA_OUT_A_p,
+    port_in_n => QDA_OUT_A_n,
     Rx => QRx(0),
 
     -- Tx port to the QDA
     Tx => QTx(0),
-    port_out_p => QDB_OUT_A_p,
-    port_out_n => QDB_OUT_A_p
+    port_out_p => QDA_IN_A_p,
+    port_out_n => QDA_IN_A_n
   );
 
   PortB_U : entity work.QDAChanBuf
   port map(
-    -- Rx port from the QDB
-    port_in_p => QDB_IN_B_p,
-    port_in_n => QDB_IN_B_p,
+    -- Rx port from the QDA
+    port_in_p => QDA_OUT_B_p,
+    port_in_n => QDA_OUT_B_n,
     Rx => QRx(1),
 
-    -- Tx port to the QDB
+    -- Tx port to the QDA
     Tx => QTx(1),
-    port_out_p => QDB_OUT_B_p,
-    port_out_n => QDB_OUT_B_p
+    port_out_p => QDA_IN_B_p,
+    port_out_n => QDA_IN_B_n
   );
 
   PortC_U : entity work.QDAChanBuf
   port map(
     -- Rx port from the QDC
-    port_in_p => QDB_IN_C_p,
-    port_in_n => QDB_IN_C_p,
+    port_in_p => QDA_OUT_C_p,
+    port_in_n => QDA_OUT_C_n,
     Rx => QRx(2),
 
     -- Tx port to the QDC
     Tx => QTx(2),
-    port_out_p => QDB_OUT_C_p,
-    port_out_n => QDB_OUT_C_p
+    port_out_p => QDA_IN_C_p,
+    port_out_n => QDA_IN_C_n
   );
 
   PortD_U : entity work.QDAChanBuf
   port map(
-    -- Rx port from the QDB
-    port_in_p => QDB_IN_D_p,
-    port_in_n => QDB_IN_D_p,
+    -- Rx port from the QDA
+    port_in_p => QDA_OUT_D_p,
+    port_in_n => QDA_OUT_D_n,
     Rx => QRx(3),
 
-    -- Tx port to the QDB
+    -- Tx port to the QDA
     Tx => QTx(3),
-    port_out_p => QDB_OUT_D_p,
-    port_out_n => QDB_OUT_D_p
+    port_out_p => QDA_IN_D_p,
+    port_out_n => QDA_IN_D_n
   );
    
 
@@ -361,30 +361,20 @@ begin
      ack          => reg_ack,
 
      -- byte data IO
-     data_out => data_out,
-     data_in => data_in,
-     one_wire_data => reg_data_out
-  );
+      TxDisable => TxDisable,
+      IntSoft   => IntSoft,
+      IntHard   => IntHard,
+      DigReset  => DigReset,
 
-  ---------------------------------------------------
-  -- OneWire
-  ---------------------------------------------------
-  one_wire <= dout;
-  din <= one_wire;
-  OneWire_U : entity work.OneWire
-  generic map (
-     clk_frequency        => 30e6
-  )
-  port map(
-    clk          => fclk,
-    rst          => rst,
-
-    -- ctrl values
-    begin_read => data_out(0),
-    dout => dout,
-    din => din,
-    presence => presence,
-    reg_data_out => reg_data_out
+      -- QDA debug signals
+      dFsmState    => dFsmState,
+      dLocFifoFull => dLocFifoFull,
+      dExtFifoFull => dExtFifoFull,
+      dRxBusy      => dRxBusy,
+      dRxValid     => dRxValid,
+      dRxError     => dRxError,
+      dTxBusy      => dTxBusy,
+      dDataValid   => dDataValid
   );
 
 
@@ -415,18 +405,18 @@ begin
     if rising_edge(fclk) then
 
       -- LED Flashing conditions
---       cr5 := sw(0) = '1';
---       cg5 := sw(1) = '1';
---       cb5 := dout = '0';
+       cr5 := dRxValid = '1';
+       cg5 := dRxBusy = '1';
+       cb5 := dRxError = '1';
 
-       cr6 := presence = '1';
-       cg6 := sw(1) = '1';
-       cb6 := sw(2) = '1';
+       cr6 := dLocFifoFull = '1';
+       cg6 := dExtFifoFull = '1';
+       cb6 := dTxBusy = '1';
 
        -- proc's RGB
---       pulseLED(cr5, start_pulse_red, pulse_count_red, pulse_red);
---       pulseLED(cb5, start_pulse_blu, pulse_count_blu, pulse_blu);
---       pulseLED(cg5, start_pulse_gre, pulse_count_gre, pulse_gre);
+       pulseLED(cr5, start_pulse_red, pulse_count_red, pulse_red);
+       pulseLED(cb5, start_pulse_blu, pulse_count_blu, pulse_blu);
+       pulseLED(cg5, start_pulse_gre, pulse_count_gre, pulse_gre);
 
        -- led6 RGB
        pulseLED(cr6, start_pulse_red6, pulse_count_red6, pulse_red6);
