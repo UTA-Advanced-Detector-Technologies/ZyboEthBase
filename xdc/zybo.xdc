@@ -48,10 +48,10 @@ set_property -dict {PACKAGE_PIN T16 IOSTANDARD LVCMOS33} [get_ports {sw[3]}]
 
 
 ##Buttons
-#set_property -dict { PACKAGE_PIN K18   IOSTANDARD LVCMOS33 } [get_ports { btn[0] }]; #IO_L12N_T1_MRCC_35 Sch=btn[0]
-#set_property -dict { PACKAGE_PIN P16   IOSTANDARD LVCMOS33 } [get_ports { btn[1] }]; #IO_L24N_T3_34 Sch=btn[1]
-#set_property -dict { PACKAGE_PIN K19   IOSTANDARD LVCMOS33 } [get_ports { btn[2] }]; #IO_L10P_T1_AD11P_35 Sch=btn[2]
-#set_property -dict { PACKAGE_PIN Y16   IOSTANDARD LVCMOS33 } [get_ports { btn[3] }]; #IO_L7P_T1_34 Sch=btn[3]
+set_property -dict { PACKAGE_PIN K18   IOSTANDARD LVCMOS33 } [get_ports { btn[0] }]; #IO_L12N_T1_MRCC_35 Sch=btn[0]
+set_property -dict { PACKAGE_PIN P16   IOSTANDARD LVCMOS33 } [get_ports { btn[1] }]; #IO_L24N_T3_34 Sch=btn[1]
+set_property -dict { PACKAGE_PIN K19   IOSTANDARD LVCMOS33 } [get_ports { btn[2] }]; #IO_L10P_T1_AD11P_35 Sch=btn[2]
+set_property -dict { PACKAGE_PIN Y16   IOSTANDARD LVCMOS33 } [get_ports { btn[3] }]; #IO_L7P_T1_34 Sch=btn[3]
 
 
 #LEDs
@@ -61,9 +61,9 @@ set_property -dict {PACKAGE_PIN G14 IOSTANDARD LVCMOS33} [get_ports {led[2]}]
 set_property -dict {PACKAGE_PIN D18 IOSTANDARD LVCMOS33} [get_ports {led[3]}]
 
 ##RGB LED 5 (Zybo Z7-20 only)
-#set_property -dict {PACKAGE_PIN Y11 IOSTANDARD LVCMOS33} [get_ports led5_r]
-#set_property -dict {PACKAGE_PIN T5 IOSTANDARD LVCMOS33} [get_ports led5_g]
-#set_property -dict {PACKAGE_PIN Y12 IOSTANDARD LVCMOS33} [get_ports led5_b]
+set_property -dict {PACKAGE_PIN Y11 IOSTANDARD LVCMOS33} [get_ports led5_r]
+set_property -dict {PACKAGE_PIN T5 IOSTANDARD LVCMOS33} [get_ports led5_g]
+set_property -dict {PACKAGE_PIN Y12 IOSTANDARD LVCMOS33} [get_ports led5_b]
 
 ##RGB LED 6
 set_property -dict {PACKAGE_PIN V16 IOSTANDARD LVCMOS33} [get_ports led6_r]
@@ -129,63 +129,57 @@ set_property -dict {PACKAGE_PIN M17 IOSTANDARD LVCMOS33} [get_ports led6_b]
 ##HDMI TX CEC
 #set_property -dict { PACKAGE_PIN E19   IOSTANDARD LVCMOS33 } [get_ports { hdmi_tx_cec }]; #IO_L5N_T0_AD9N_35 Sch=hdmi_tx_cec
 
-
 ##Pmod Header JA (XADC)
-#set_property -dict { PACKAGE_PIN N15   IOSTANDARD LVCMOS33 } [get_ports { ja[0] }]; #IO_L21P_T3_DQS_AD14P_35 Sch=JA1_R_p
-#set_property -dict { PACKAGE_PIN L14   IOSTANDARD LVCMOS33 } [get_ports { ja[1] }]; #IO_L22P_T3_AD7P_35 Sch=JA2_R_P
-#set_property -dict { PACKAGE_PIN K16   IOSTANDARD LVCMOS33 } [get_ports { ja[2] }]; #IO_L24P_T3_AD15P_35 Sch=JA3_R_P
-#set_property -dict { PACKAGE_PIN K14   IOSTANDARD LVCMOS33 } [get_ports { ja[3] }]; #IO_L20P_T3_AD6P_35 Sch=JA4_R_P
-#set_property -dict { PACKAGE_PIN N16   IOSTANDARD LVCMOS33 } [get_ports { ja[4] }]; #IO_L21N_T3_DQS_AD14N_35 Sch=JA1_R_N
-#set_property -dict { PACKAGE_PIN L15   IOSTANDARD LVCMOS33 } [get_ports { ja[5] }]; #IO_L22N_T3_AD7N_35 Sch=JA2_R_N
-#set_property -dict { PACKAGE_PIN J16   IOSTANDARD LVCMOS33 } [get_ports { ja[6] }]; #IO_L24N_T3_AD15N_35 Sch=JA3_R_N
-#set_property -dict { PACKAGE_PIN J14   IOSTANDARD LVCMOS33 } [get_ports { ja[7] }]; #IO_L20N_T3_AD6N_35 Sch=JA4_R_N
-
+set_property -dict {PACKAGE_PIN N15 IOSTANDARD LVDS} [get_ports {QDA_IN_A_p}]
+set_property -dict {PACKAGE_PIN L14 IOSTANDARD LVDS} [get_ports {QDA_IN_A_n}]
+set_property -dict {PACKAGE_PIN K16 IOSTANDARD LVDS} [get_ports {QDA_IN_B_p}]
+set_property -dict {PACKAGE_PIN K14 IOSTANDARD LVDS} [get_ports {QDA_IN_B_n}]
+set_property -dict {PACKAGE_PIN K16 IOSTANDARD LVDS} [get_ports {QDA_OUT_A_p}]
+set_property -dict {PACKAGE_PIN K14 IOSTANDARD LVDS} [get_ports {QDA_OUT_A_n}]
+set_property -dict {PACKAGE_PIN J16 IOSTANDARD LVDS} [get_ports {QDA_OUT_B_p}]
+set_property -dict {PACKAGE_PIN J14 IOSTANDARD LVDS} [get_ports {QDA_OUT_B_n}]
 
 ##Pmod Header JB (Zybo Z7-20 only)
-#set_property -dict {PACKAGE_PIN V8 IOSTANDARD LVTTL DRIVE 4 SLEW FAST PULLUP TRUE} [get_ports one_wire]
-#set_property PULLUP TRUE [get_ports one_wire]
-#set_property -dict {PACKAGE_PIN V8 IOSTANDARD LVCMOS33} [get_ports {jb[0]}]
-#set_property -dict {PACKAGE_PIN W8 IOSTANDARD LVCMOS33} [get_ports {jb[1]}]
-#set_property -dict {PACKAGE_PIN U7 IOSTANDARD LVCMOS33} [get_ports {jb[2]}]
-#set_property -dict {PACKAGE_PIN V7 IOSTANDARD LVCMOS33} [get_ports {jb[3]}]
-#set_property -dict {PACKAGE_PIN Y7 IOSTANDARD LVCMOS33} [get_ports {jb[4]}]
-#set_property -dict {PACKAGE_PIN Y6 IOSTANDARD LVCMOS33} [get_ports {jb[5]}]
-#set_property -dict {PACKAGE_PIN V6 IOSTANDARD LVCMOS33} [get_ports {jb[6]}]
-#set_property -dict {PACKAGE_PIN W6 IOSTANDARD LVCMOS33} [get_ports {jb[7]}]
-
+set_property -dict {PACKAGE_PIN V8 IOSTANDARD LVDS} [get_ports {QDA_IN_C_p}]
+set_property -dict {PACKAGE_PIN W8 IOSTANDARD LVDS} [get_ports {QDA_IN_C_n}]
+set_property -dict {PACKAGE_PIN U7 IOSTANDARD LVDS} [get_ports {QDA_IN_D_p}]
+set_property -dict {PACKAGE_PIN V7 IOSTANDARD LVDS} [get_ports {QDA_IN_D_n}]
+set_property -dict {PACKAGE_PIN Y7 IOSTANDARD LVDS} [get_ports {QDA_OUT_C_p}]
+set_property -dict {PACKAGE_PIN Y6 IOSTANDARD LVDS} [get_ports {QDA_OUT_C_n}]
+set_property -dict {PACKAGE_PIN V6 IOSTANDARD LVDS} [get_ports {QDA_OUT_D_p}]
+set_property -dict {PACKAGE_PIN W6 IOSTANDARD LVDS} [get_ports {QDA_OUT_D_n}]
 
 ###Pmod Header JC
-#set_property -dict {PACKAGE_PIN V15 IOSTANDARD LVCMOS33} [get_ports {jc[0]}]
-#set_property -dict {PACKAGE_PIN W15 IOSTANDARD LVCMOS33} [get_ports {jc[1]}]
-#set_property -dict {PACKAGE_PIN T11 IOSTANDARD LVCMOS33} [get_ports {jc[2]}]
-#set_property -dict {PACKAGE_PIN T10 IOSTANDARD LVCMOS33} [get_ports {jc[3]}]
-#set_property -dict {PACKAGE_PIN W14 IOSTANDARD LVCMOS33} [get_ports {jc[4]}]
-#set_property -dict {PACKAGE_PIN Y14 IOSTANDARD LVCMOS33} [get_ports {jc[5]}]
-#set_property -dict {PACKAGE_PIN T12 IOSTANDARD LVCMOS33} [get_ports {jc[6]}]
-#set_property -dict {PACKAGE_PIN U12 IOSTANDARD LVCMOS33} [get_ports {jc[7]}]
-
+set_property -dict {PACKAGE_PIN V15 IOSTANDARD LVCMOS33} [get_ports {dFsmState[0]}]
+set_property -dict {PACKAGE_PIN W15 IOSTANDARD LVCMOS33} [get_ports {dFsmState[1]}]
+set_property -dict {PACKAGE_PIN T11 IOSTANDARD LVCMOS33} [get_ports {dFsmState[2]}]
+set_property -dict {PACKAGE_PIN T10 IOSTANDARD LVCMOS33} [get_ports {dLocFifoFull}]
+set_property -dict {PACKAGE_PIN W14 IOSTANDARD LVCMOS33} [get_ports {dExtFifoFull}]
+set_property -dict {PACKAGE_PIN Y14 IOSTANDARD LVCMOS33} [get_ports {dRxBusy}]
+set_property -dict {PACKAGE_PIN T12 IOSTANDARD LVCMOS33} [get_ports {dRxValid}]
+set_property -dict {PACKAGE_PIN U12 IOSTANDARD LVCMOS33} [get_ports {dRxError}]
 
 ###Pmod Header JD
-#set_property -dict {PACKAGE_PIN T14 IOSTANDARD LVCMOS33} [get_ports {jd[0]}]
-#set_property -dict {PACKAGE_PIN T15 IOSTANDARD LVCMOS33} [get_ports {jd[1]}]
-#set_property -dict {PACKAGE_PIN P14 IOSTANDARD LVCMOS33} [get_ports {jd[2]}]
-#set_property -dict {PACKAGE_PIN R14 IOSTANDARD LVCMOS33} [get_ports {jd[3]}]
-#set_property -dict {PACKAGE_PIN U14 IOSTANDARD LVCMOS33} [get_ports {jd[4]}]
-#set_property -dict {PACKAGE_PIN U15 IOSTANDARD LVCMOS33} [get_ports {jd[5]}]
-#set_property -dict {PACKAGE_PIN V17 IOSTANDARD LVCMOS33} [get_ports {jd[6]}]
-#set_property -dict {PACKAGE_PIN V18 IOSTANDARD LVCMOS33} [get_ports {jd[7]}]
+set_property -dict {PACKAGE_PIN T14 IOSTANDARD LVCMOS33} [get_ports {TxDisable[0]}]
+set_property -dict {PACKAGE_PIN T15 IOSTANDARD LVCMOS33} [get_ports {TxDisable[1]}]
+set_property -dict {PACKAGE_PIN P14 IOSTANDARD LVCMOS33} [get_ports {TxDisable[2]}]
+set_property -dict {PACKAGE_PIN R14 IOSTANDARD LVCMOS33} [get_ports {TxDisable[3]}]
+set_property -dict {PACKAGE_PIN U14 IOSTANDARD LVCMOS33} [get_ports {IntSoft}]
+set_property -dict {PACKAGE_PIN U15 IOSTANDARD LVCMOS33} [get_ports {IntHard}]
+set_property -dict {PACKAGE_PIN V17 IOSTANDARD LVCMOS33} [get_ports {DigReset}]
+set_property -dict {PACKAGE_PIN V18 IOSTANDARD LVCMOS33} [get_ports {dTxBusy}]
 
 
+### DebugOut in QDA has 9 pins
 ##Pmod Header JE
-set_property -dict {PACKAGE_PIN V12 IOSTANDARD LVTTL DRIVE 4 SLEW FAST PULLUP TRUE} [get_ports one_wire]
-#set_property -dict {PACKAGE_PIN V12 IOSTANDARD LVCMOS33} [get_ports {je[0]}]
-#set_property -dict {PACKAGE_PIN W16 IOSTANDARD LVCMOS33} [get_ports {je[1]}]
-#set_property -dict {PACKAGE_PIN J15 IOSTANDARD LVCMOS33} [get_ports {je[2]}]
-#set_property -dict {PACKAGE_PIN H15 IOSTANDARD LVCMOS33} [get_ports {je[3]}]
-#set_property -dict {PACKAGE_PIN V13 IOSTANDARD LVCMOS33} [get_ports {je[4]}]
-#set_property -dict {PACKAGE_PIN U17 IOSTANDARD LVCMOS33} [get_ports {je[5]}]
-#set_property -dict {PACKAGE_PIN T17 IOSTANDARD LVCMOS33} [get_ports {je[6]}]
-#set_property -dict {PACKAGE_PIN Y17 IOSTANDARD LVCMOS33} [get_ports {je[7]}]
+set_property -dict {PACKAGE_PIN V12 IOSTANDARD LVCMOS33} [get_ports {EndeavorScale[0]}]
+set_property -dict {PACKAGE_PIN W16 IOSTANDARD LVCMOS33} [get_ports {EndeavorScale[1]}]
+set_property -dict {PACKAGE_PIN J15 IOSTANDARD LVCMOS33} [get_ports {EndeavorScale[2]}]
+set_property -dict {PACKAGE_PIN H15 IOSTANDARD LVCMOS33} [get_ports {TxDisable[0]}]
+set_property -dict {PACKAGE_PIN V13 IOSTANDARD LVCMOS33} [get_ports {TxDisable[1]}]
+set_property -dict {PACKAGE_PIN U17 IOSTANDARD LVCMOS33} [get_ports {TxDisable[2]}]
+set_property -dict {PACKAGE_PIN T17 IOSTANDARD LVCMOS33} [get_ports {TxDisable[3]}]
+set_property -dict {PACKAGE_PIN Y17 IOSTANDARD LVCMOS33} [get_ports {dDataValid}]
 
 
 ##Pcam MIPI CSI-2 Connector

@@ -7,16 +7,16 @@ library work;
 library UNISIM;
 use UNISIM.VComponents.all;
 
-entity ZyboEthBaseTOP is
+entity ZyboQDACtrl is
 port (    
 
    led       : out std_logic_vector(3 downto 0);
    sw        : in std_logic_vector(3 downto 0);
 
    -- led_5
---   led5_r : out std_logic;
---   led5_b : out std_logic;
---   led5_g : out std_logic;
+  led5_r : out std_logic;
+  led5_b : out std_logic;
+  led5_g : out std_logic;
 
    -- led_6
    led6_r : out std_logic;
@@ -24,10 +24,42 @@ port (
    led6_g : out std_logic;
 
    -- I/O ports
---   je    : out STD_LOGIC_VECTOR(7 downto 0);
-   
-   -- onewire
-   one_wire : inout std_logic;
+   QDA_IN_A_p  : out std_logic;
+   QDA_IN_A_n  : out std_logic;
+   QDA_OUT_A_p : in  std_logic;
+   QDA_OUT_A_n : in  std_logic;
+
+   QDA_IN_B_p  : out std_logic;
+   QDA_IN_B_n  : out std_logic;
+   QDA_OUT_B_p : in  std_logic;
+   QDA_OUT_B_n : in  std_logic;
+
+   QDA_IN_C_p  : out std_logic;
+   QDA_IN_C_n  : out std_logic;
+   QDA_OUT_C_p : in  std_logic;
+   QDA_OUT_C_n : in  std_logic;
+
+   QDA_IN_D_p  : out std_logic;
+   QDA_IN_D_n  : out std_logic;
+   QDA_OUT_D_p : in  std_logic;
+   QDA_OUT_D_n : in  std_logic;
+
+   -- config signals
+   EndeavorScale : out std_logic_vector(2 downto 0);
+   TxDisable     : out std_logic_vector(3 downto 0);
+   IntSoft       : out std_logic;
+   IntHard       : out std_logic;
+   DigReset      : out std_logic;
+
+   -- debug signals (inputs from QDA)
+   dFsmState    : in std_logic_vector(2 downto 0);
+   dLocFifoFull : in std_logic;
+   dExtFifoFull : in std_logic;
+   dRxBusy      : in std_logic;
+   dRxValid     : in std_logic;
+   dRxError     : in std_logic;
+   dTxBusy      : in std_logic;
+   dDataValid   : in std_logic;
 
    -- PS ports
    DDR_addr          : inout STD_LOGIC_VECTOR (14 downto 0);
@@ -52,9 +84,9 @@ port (
    FIXED_IO_ps_porb  : inout STD_LOGIC;
    FIXED_IO_ps_srstb : inout STD_LOGIC
 );
-end ZyboEthBaseTop;
+end ZyboQDACtrl;
 
-architecture Behavioral of ZyboEthBaseTOP is
+architecture Behavioral of ZyboQDACtrl is
 
    constant pulse_time : integer := 7_999_999;  -- fclk_freq / pulse_time = pulse's width
    constant FCLK_FRQ   : natural := 30000000;
@@ -102,12 +134,6 @@ architecture Behavioral of ZyboEthBaseTOP is
    signal data_out   : std_logic_vector(7 downto 0); -- how many bytes to accept
    signal data_in    : std_logic_vector(7 downto 0); -- how many bytes to accept
 
-
-   -- one wire info
-   signal din   : std_logic; -- how many bytes to accept
-   signal dout    : std_logic; -- how many bytes to accept
-   signal presence : std_logic;
-
    signal reg_data_out : std_logic_vector(63 downto 0);
    
    signal counter_led : std_logic                    := '0';
@@ -119,6 +145,10 @@ architecture Behavioral of ZyboEthBaseTOP is
    signal pulse_red6 : std_logic := '0';
    signal pulse_blu6 : std_logic := '0';
    signal pulse_gre6 : std_logic := '0';
+
+   -- signals for buffering port IO
+   signal QRx : std_logic_vector(3 downto 0);
+   signal QTx : std_logic_vector(3 downto 0);
    
    
    -- pulse LED procedure
@@ -145,18 +175,72 @@ architecture Behavioral of ZyboEthBaseTOP is
 
 begin
 
-    led <= sw;
---    je <= data_out;
+--    led <= sw;
 
     -- LED-5, active high
---    led5_r <= pulse_red;
---    led5_b <= pulse_blu;
---    led5_g <= pulse_gre;
+    led5_r <= pulse_red;
+    led5_b <= pulse_blu;
+    led5_g <= pulse_gre;
 
     led6_r <= pulse_red6;
     led6_b <= pulse_blu6;
     led6_g <= pulse_gre6;
 
+
+  ---------------------------------------------------
+  -- Channel Maps
+  ---------------------------------------------------
+  PortA_U : entity work.QDAChanBuf
+  port map(
+    -- Rx port from the QDA
+    port_in_p => QDB_IN_A_p,
+    port_in_n => QDB_IN_A_p,
+    Rx => QRx(0),
+
+    -- Tx port to the QDA
+    Tx => QTx(0),
+    port_out_p => QDB_OUT_A_p,
+    port_out_n => QDB_OUT_A_p
+  );
+
+  PortB_U : entity work.QDAChanBuf
+  port map(
+    -- Rx port from the QDB
+    port_in_p => QDB_IN_B_p,
+    port_in_n => QDB_IN_B_p,
+    Rx => QRx(1),
+
+    -- Tx port to the QDB
+    Tx => QTx(1),
+    port_out_p => QDB_OUT_B_p,
+    port_out_n => QDB_OUT_B_p
+  );
+
+  PortC_U : entity work.QDAChanBuf
+  port map(
+    -- Rx port from the QDC
+    port_in_p => QDB_IN_C_p,
+    port_in_n => QDB_IN_C_p,
+    Rx => QRx(2),
+
+    -- Tx port to the QDC
+    Tx => QTx(2),
+    port_out_p => QDB_OUT_C_p,
+    port_out_n => QDB_OUT_C_p
+  );
+
+  PortD_U : entity work.QDAChanBuf
+  port map(
+    -- Rx port from the QDB
+    port_in_p => QDB_IN_D_p,
+    port_in_n => QDB_IN_D_p,
+    Rx => QRx(3),
+
+    -- Tx port to the QDB
+    Tx => QTx(3),
+    port_out_p => QDB_OUT_D_p,
+    port_out_n => QDB_OUT_D_p
+  );
    
 
   ---------------------------------------------------
