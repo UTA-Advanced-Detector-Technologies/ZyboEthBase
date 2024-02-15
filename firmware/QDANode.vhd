@@ -6,7 +6,7 @@
 -- Author     : Kevin Keefe <kevin.keefe2@uta.edu>
 -- Company    :
 -- Created    : 2024-02-13
--- Last update: 2024-02-13
+-- Last update: 2024-02-15
 -- Platform   : Windows 11
 -- Standard   : VHDL08
 -------------------------------------------------------------------------------
@@ -50,6 +50,10 @@ port (
   S_AXI_0_tready  : in  STD_LOGIC;
   S_AXI_0_tlast   : out STD_LOGIC;
   S_AXI_0_tvalid  : out STD_LOGIC;
+
+  -- signals out to LEDs
+  RxValid : out sl;
+  TxValid : out sl;
 
   -- Register Pins
   QDAByte         : in  slv(63 downto 0); -- byte to send out on tx port
@@ -102,7 +106,7 @@ architecture Behavioral of QDANode is
 
 begin  -- architecture QDANode
 
-  -- connections to entity;
+  -- connections to native fifo;
   valid         <= fifo_valid;
   empty         <= fifo_empty;
   full          <= fifo_full;
@@ -116,15 +120,22 @@ begin  -- architecture QDANode
             n_qda_hits <= n_qda_hits + 1;
         end if;
 
+        -- default state
+        RxValid    <= '0';
+        TxValid    <= '0';
+        fifo_wr_en <= '0';
+        fifo_din   <= (others => '0');
+        rxByteAck  <= (others => '0');
+
         -- choose to write fifo_din with rxByte
         for i in 0 to 3 loop
           -- received a valid byte on this channel
-          if rxByteValid(i) = '1' then
+          if rxByteValid(i) = '1' and QDAReadEn = '1' then
             fifo_din     <= rxByte(i);
             fifo_wr_en   <= '1';
             rxByteAck    <= (others => '0');
+            RxValid      <= '1';
             rxByteAck(i) <= '1';
-            send_rx := false;
           end if;
         end loop;
 
@@ -132,8 +143,12 @@ begin  -- architecture QDANode
         if QDASend = '1' then
           for i in 0 to 3 loop
             if QDAMask(i) = '1' and txByteReady(i) = '1' then
+              txByte         <= (others => (others => '0'));
               txByte(i)      <= QDAByte;
+              TxByteValid    <= (others => '0');
               txByteValid(i) <= '1';
+              TxValid        <= '1';
+            else
             end if;
           end loop;
         end if;
@@ -182,13 +197,14 @@ begin  -- architecture QDANode
 
     -- register connections
     qdaPacketLength => qdaPacketLength,
+    QDAReadEn       => QDAReadEn,
 
     -- direct AXI Data Fifo Connections
     -- AXI IO
-    S_AXI_0_tdata   => S_AXI_0_tdata,
-    S_AXI_0_tready  => S_AXI_0_tready,
-    S_AXI_0_tlast   => S_AXI_0_tlast,
-    S_AXI_0_tvalid  => S_AXI_0_tvalid
+    S_AXI_0_tdata  => S_AXI_0_tdata,
+    S_AXI_0_tready => S_AXI_0_tready,
+    S_AXI_0_tlast  => S_AXI_0_tlast,
+    S_AXI_0_tvalid => S_AXI_0_tvalid
    );
 
   -- allocate an endeavor node for each of the QPix Directions

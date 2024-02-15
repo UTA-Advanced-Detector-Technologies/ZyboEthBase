@@ -6,7 +6,7 @@
 -- Author     : Kevin Kevin  <kevinpk@hawaii.edu>
 -- Company    :
 -- Created    : 2022-09-08
--- Last update: 2024-02-13
+-- Last update: 2024-02-15
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ use work.UtilityPkg.all;
 entity QDAAxiFifo is
 
   port (
-    clk : in sl;
+    clk          : in  sl;
     -- Fifo Generator Ports
     fifo_dout    : in  slv(63 downto 0);
     fifo_wr_en   : in  sl;
@@ -44,13 +44,14 @@ entity QDAAxiFifo is
 
     -- register connections
     qdaPacketLength : in slv(31 downto 0);
+    QDAReadEn       : in sl;
 
     -- AXI4-Stream Data Fifo Ports
     -- write data channel
-    S_AXI_0_tdata   : out STD_LOGIC_VECTOR (31 downto 0);
-    S_AXI_0_tlast   : out STD_LOGIC;
-    S_AXI_0_tready  : in  STD_LOGIC;
-    S_AXI_0_tvalid  : out STD_LOGIC
+    S_AXI_0_tdata  : out STD_LOGIC_VECTOR (31 downto 0);
+    S_AXI_0_tlast  : out STD_LOGIC;
+    S_AXI_0_tready : in  STD_LOGIC;
+    S_AXI_0_tvalid : out STD_LOGIC
 
 );
 
@@ -119,18 +120,15 @@ begin  -- architecture Behavioral
                 -- Ready for FIFO write data
                 -- initiated by the following conditions:
                 --   * assertion of not fifo_empty
+                --   * and read enable is set from register space
                 when IDLE =>
 
                   v_word_phase := '0';
 
-                  if fifo_empty /= '1' then
+                  if fifo_empty /= '1' and QDAReadEn = '1' then
                     s_state_r          <= WRITE_DATA_S;
                     s_fifo_ren         <= '1';  -- update the fifo to read from 
                     newWord            := '0';
-                  elsif s_axi_tready_r = '1' then
-                    s_axi_tdata   <= x"beefcafe";
-                    s_axi_tlast_r <= '1';
-                    s_axi_tvalid  <= '1';
                   end if;
 
                 -- Write data words to addr

@@ -134,10 +134,10 @@ begin
          QDASend <= '0';
 
          -- reg mapping
-         case to_integer(unsigned(a_reg_addr)) is
+         case a_reg_addr is
 
             -- scratchpad IO
-            when 0 =>
+            when x"00" =>
                if wen = '1' and req = '1' then
                   scratch_word <= wdata;
                else
@@ -145,7 +145,7 @@ begin
                end if;
 
             -- set TxDisable
-            when 1 =>
+            when x"01" =>
                if wen = '1' and req = '1' then
                   s_TxDisable <= wdata(3 downto 0);
                else
@@ -153,7 +153,7 @@ begin
                end if;
 
             -- set pulse len
-            when 2 =>
+            when x"02" =>
                if wen = '1' and req = '1' then
                   pulseLen <= wdata;
                else
@@ -161,26 +161,26 @@ begin
                end if;
 
             -- read debug
-            when 3 =>
+            when x"03" =>
                rdata <= readDebug(rDebugIn);
 
             -- send debug pulses
-            when 4 =>
+            when x"04" =>
                -- make sure to reset counter on update
                count := (others => '0');
-               case to_integer(unsigned(wdata)) is
-                  when 1 =>
+               case wdata is
+                  when x"0000" =>
                      rDebugOut <= pulseDebugOut_Soft;
-                  when 2 =>
+                  when x"0001" =>
                      rDebugOut <= pulseDebugOut_Hard;
-                  when 3 =>
+                  when x"0002" =>
                      rDebugOut <= pulseDebugOut_Reset;
                   when others =>
                      rDebugOut <= pulseDebugOut_C;
                end case;
 
             -- endeavor scale
-            when 5 =>
+            when x"05" =>
                if wen = '1' and req = '1' then
                   s_EndeavorScale <= wdata(2 downto 0);
                else
@@ -188,31 +188,29 @@ begin
                end if;
 
             -- The QDA Node Registers
-            when 50 =>
-               if wen = '1' and req = '1' then
-                  QDAMask <= wdata(N_QDA_PORTS - 1 downto 0);
-                  QDASend <= '1';
-               end if;
+            when x"06" =>
+               QDAMask <= wdata(N_QDA_PORTS - 1 downto 0);
+               QDASend <= '1';
 
             -- QDA FIFO values
-            when 51    =>
+            when x"10"    =>
                rdata(2 downto 0) <= QDA_fifo_empty & QDA_fifo_full & QDA_fifo_valid;
 
-            when 52 =>
-                  QDA_fifo_ren <= wdata(0);
+            when x"11" =>
+               QDA_fifo_ren <= wdata(0);
 
-            when 53 =>
-                  QDAPacketLength <= wdata;
+            when x"12" =>
+               QDAPacketLength <= wdata;
 
-            when 54 =>
+            when x"13" =>
                rdata <= QDA_fifo_hits;
 
             -- QDA Byte low
-            when 55 =>
+            when x"14" =>
                QDAByte(31 downto 0) <= wdata;
 
             -- QDA Byte high
-            when 56 =>
+            when x"15" =>
                QDAByte(63 downto 32) <= wdata;
 
             when others =>

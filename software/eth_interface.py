@@ -33,6 +33,7 @@ LATEST_STABLE_VERSION = 0x0000_00001
 # DMA_REG NOTES
 # CTRL NOTE: only lowest bit enables and begins DMA, bit 2 is always high, bit 16 is
 # interupt threshold which has a minimum of 1, and 1000 part is interrupt on complete enable
+# AXI DMA register info:  https://docs.xilinx.com/r/en-US/pg021_axi_dma/Product-Specification
 
 # DMA_CONTROL constant globals that should ensure DMA registers
 # each register stores 32b, but not all bits are used at certain registers..
@@ -441,10 +442,11 @@ class eth_interface(QObject):
 
         # update the current length buffer
         addr = DMA_REG.S2MM_LENGTH
+        # self._WriteDMA(addr, DMA_LENGTH)
         dma_leng = self._ReadDMA(addr)
         if dma_leng != DMA_LENGTH:
             print(f"WARNING! DMA Length Reg is: {dma_leng:08x}")
-            print(f"EXPECTED: {dma_leng:08x}")
+            print(f"EXPECTED: {DMA_LENGTH:08x}")
 
         # verify DMA status
         addr = DMA_REG.S2MM_STATUS

@@ -13,14 +13,6 @@ from PyQt5.QtCore import QProcess, QTimer, pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QMainWindow, QAction
 
-# for output data
-from array import array
-import ROOT
-import numpy as np
-import datetime
-# for spawning other process to turn binary data into ROOT
-import subprocess 
-
 
 class GUI(QMainWindow):
 
@@ -83,14 +75,18 @@ class GUI(QMainWindow):
         layout.addWidget(btn_writeReg, 1, 0)
 
         self.s_addr = QSpinBox()
-        self.s_addr.setRange(0, 4)
+        self.s_addr.setRange(0, 32)
         self.s_addr.setValue(0)
-        layout.addWidget(self.s_addr, 1, 1)
+        self._laddr = QLabel("addr")
+        layout.addWidget(self._laddr, 1, 1)
+        layout.addWidget(self.s_addr, 2, 1)
 
         self.s_addrVal = QSpinBox()
-        self.s_addrVal.setRange(0, 4)
+        self.s_addrVal.setRange(0, 32)
         self.s_addrVal.setValue(0)
-        layout.addWidget(self.s_addrVal, 1, 2)
+        self._lval = QLabel("val")
+        layout.addWidget(self._lval, 1, 2)
+        layout.addWidget(self.s_addrVal, 2, 2)
 
         self._qdbPage.setLayout(layout)
         return self._qdbPage
@@ -113,16 +109,14 @@ class GUI(QMainWindow):
         data += highVal
         print(f"reg read val: {data:08x}")
 
-    def readReg(self, val=None):
+    def readReg(self):
         """
         read a specific asic reg
         """
-        if val is None:
-            addr = self.s_addr.value()
-        else:
-            addr = val
+        addr = self.s_addr.value()
         readVal = self.eth.regRead(addr)
-        # print(f"reg read val: {readVal:08x}")
+        print(f"read addr reg: 0x{addr:06x}")
+        print(f"reg read val: {readVal:08x}")
         return readVal
 
     def writeReg(self):
@@ -132,7 +126,7 @@ class GUI(QMainWindow):
         addr = self.s_addr.value()
         val = self.s_addrVal.value()
         print(f"writing addr reg: 0x{addr:06x}")
-        print(f"writing val: 0x{addr:04x}")
+        print(f"writing val: 0x{val:04x}")
         self.eth.regWrite(addr, val)
 
     def trigger(self, hard=True):

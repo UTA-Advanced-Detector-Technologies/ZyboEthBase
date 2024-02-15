@@ -107,6 +107,9 @@ architecture Behavioral of ZyboQDACtrl is
    signal QDA_fifo_ren     : std_logic := '0';
    signal QDA_fifo_hits    : std_logic_vector(31 downto 0);
 
+   signal qdaRxValid : std_logic;
+   signal qdaTxValid : std_logic;
+
    -- QDA config
    signal sEndeavorScale : std_logic_vector(2 downto 0);
 
@@ -409,35 +412,39 @@ begin
    ---------------------------------------------------
    -- QDA node, manage the 4 Tx / Rx lines from the QDA
    ---------------------------------------------------
-  QDANode_U : entity work.QDANode
-   generic map(
-   N_QDA_PORTS    => N_QDA_PORTS,
-   TIMESTAMP_BITS => TIMESTAMP_BITS)
-   port map(
-      clk         => fclk,
-      rst         => rst,
+ QDANode_U : entity work.QDANode
+  generic map(
+  N_QDA_PORTS    => N_QDA_PORTS,
+  TIMESTAMP_BITS => TIMESTAMP_BITS)
+  port map(
+     clk         => fclk,
+     rst         => rst,
 
-      QTx => QTx,
-      QRx => QRx,
-      EndeavorScale => sEndeavorScale,
+     QTx => QTx,
+     QRx => QRx,
+     EndeavorScale => sEndeavorScale,
 
-      -- AXI Output to UDP
-      S_AXI_0_tdata   => S_AXI_0_tdata,
-      S_AXI_0_tready  => S_AXI_0_tready,
-      S_AXI_0_tlast   => S_AXI_0_tlast,
-      S_AXI_0_tvalid  => S_AXI_0_tvalid,
+     -- AXI Output to UDP
+     S_AXI_0_tdata   => S_AXI_0_tdata,
+     S_AXI_0_tready  => S_AXI_0_tready,
+     S_AXI_0_tlast   => S_AXI_0_tlast,
+     S_AXI_0_tvalid  => S_AXI_0_tvalid,
 
-      -- Register Pins
-      QDAByte         => QDAByte,
-      QDASend         => QDASend,
-      QDAMask         => QDAMask,
-      QDAPacketLength => QDAPacketLength,
-      valid           => QDA_fifo_valid,
-      empty           => QDA_fifo_empty,
-      full            => QDA_fifo_full,
-      QDA_fifo_Hits   => QDA_fifo_hits,
-      QDAReadEn       => QDA_fifo_ren
-   );
+     -- valid signals being sent
+     RxValid => qdaRxValid,
+     TxValid => qdaTxValid,
+
+     -- Register Pins
+     QDAByte         => QDAByte,
+     QDASend         => QDASend,
+     QDAMask         => QDAMask,
+     QDAPacketLength => QDAPacketLength,
+     valid           => QDA_fifo_valid,
+     empty           => QDA_fifo_empty,
+     full            => QDA_fifo_full,
+     QDA_fifo_Hits   => QDA_fifo_hits,
+     QDAReadEn       => QDA_fifo_ren
+  );
 
 
 -- pulse relevant LEDs
@@ -467,13 +474,13 @@ begin
     if rising_edge(fclk) then
 
       -- LED Flashing conditions
-       cr5 := QDASend = '1';
+       cr5 := qdaRxValid = '1';
        cg5 := false;
        cb5 := false;
 
-       cr6 := dLocFifoFull = '1';
-       cg6 := dExtFifoFull = '1';
-       cb6 := dTxBusy = '1';
+       cr6 := qdaTxValid = '1';
+       cg6 := false;
+       cb6 := false;
 
        -- proc's RGB
        pulseLED(cr5, start_pulse_red, pulse_count_red, pulse_red);
