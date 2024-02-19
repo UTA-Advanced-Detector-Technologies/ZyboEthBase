@@ -10,8 +10,8 @@ use UNISIM.VComponents.all;
 entity ZyboQDACtrl is
 port (    
 
-   led       : out std_logic_vector(3 downto 0);
-   sw        : in std_logic_vector(3 downto 0);
+   led : out std_logic_vector(3 downto 0);
+   sw  : in  std_logic_vector(3 downto 0);
 
    -- led_5
    led5_r : out std_logic;
@@ -44,6 +44,12 @@ port (
    QDA_OUT_D_p : in  std_logic;
    QDA_OUT_D_n : in  std_logic;
 
+   -- SPI Ctrl
+   SPI_SCLK : out std_logic;
+   SPI_PCLK : out std_logic;
+   SPI_SRST : out std_logic;
+   SPI_SIN  : out std_logic;
+
    -- config signals
    EndeavorScale : out std_logic_vector(2 downto 0);
    TxDisable     : out std_logic_vector(3 downto 0);
@@ -56,10 +62,8 @@ port (
    dLocFifoFull : in std_logic;
    dExtFifoFull : in std_logic;
    dRxBusy      : in std_logic;
-   dRxValid     : in std_logic;
    dRxError     : in std_logic;
    dTxBusy      : in std_logic;
-   dDataValid   : in std_logic;
 
    -- PS ports
    DDR_addr          : inout STD_LOGIC_VECTOR (14 downto 0);
@@ -387,15 +391,19 @@ begin
      IntHard       => IntHard,
      DigReset      => DigReset,
 
+     -- QDA SPI VCO
+     SPI_SCLK => SPI_SCLK,
+     SPI_PCLK => SPI_PCLK,
+     SPI_SRST => SPI_SRST,
+     SPI_SIN  => SPI_SIN,
+
      -- QDA debug signals
      dFsmState    => dFsmState,
      dLocFifoFull => dLocFifoFull,
      dExtFifoFull => dExtFifoFull,
      dRxBusy      => dRxBusy,
-     dRxValid     => dRxValid,
      dRxError     => dRxError,
      dTxBusy      => dTxBusy,
-     dDataValid   => dDataValid,
 
      -- QDA Node interactions
      QDAByte         => QDAByte,
@@ -474,12 +482,12 @@ begin
     if rising_edge(fclk) then
 
       -- LED Flashing conditions
-       cr5 := qdaRxValid = '1';
-       cg5 := false;
+       cr5 := false;
+       cg5 := QRx(0) = '1';
        cb5 := false;
 
-       cr6 := qdaTxValid = '1';
-       cg6 := false;
+       cr6 := false;
+       cg6 := QRx(0) = '0';
        cb6 := false;
 
        -- proc's RGB

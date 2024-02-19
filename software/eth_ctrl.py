@@ -13,6 +13,8 @@ from PyQt5.QtCore import QProcess, QTimer, pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QMainWindow, QAction
 
+from qda_reg import QDA_CTRL_REG
+
 
 class GUI(QMainWindow):
 
@@ -40,9 +42,11 @@ class GUI(QMainWindow):
         # create the layouts that are needed for making the GUI pretty
         self.tabW = QTabWidget()
         self.tabW.addTab(self._makeEthlayout(), "ETH")
-        self.setCentralWidget(self.tabW)
+
+        self.tabW.addTab(self._makeTestlayout(), "TEST")
 
         # show the main window
+        self.setCentralWidget(self.tabW)
         self.show()
 
     def _makeEthlayout(self):
@@ -76,20 +80,154 @@ class GUI(QMainWindow):
 
         self.s_addr = QSpinBox()
         self.s_addr.setRange(0, 32)
-        self.s_addr.setValue(0)
+        self.s_addr.setValue(22)
         self._laddr = QLabel("addr")
         layout.addWidget(self._laddr, 1, 1)
         layout.addWidget(self.s_addr, 2, 1)
 
         self.s_addrVal = QSpinBox()
-        self.s_addrVal.setRange(0, 32)
-        self.s_addrVal.setValue(0)
+        self.s_addrVal.setRange(0, 4095)
+        self.s_addrVal.setValue(2000)
         self._lval = QLabel("val")
         layout.addWidget(self._lval, 1, 2)
         layout.addWidget(self.s_addrVal, 2, 2)
 
         self._qdbPage.setLayout(layout)
         return self._qdbPage
+
+    def _makeTestlayout(self):
+        """
+        Helper wrapped to put testing click functions on a separate tab for custom uses
+        """
+        self._testPage = QWidget()
+        layout = QGridLayout()
+
+        scan_dac = QPushButton()
+        scan_dac.setText('Scan DAC')
+        scan_dac.clicked.connect(self.ScanDAC)
+        layout.addWidget(scan_dac, 0, 0)
+
+        btn = QPushButton()
+        btn.setText('Reset DAC')
+        btn.clicked.connect(self.ResetDAC)
+        layout.addWidget(btn, 0, 1)
+
+        dbtn = QPushButton()
+        dbtn.setText('Read Debug')
+        dbtn.clicked.connect(self.ReadDebug)
+        layout.addWidget(dbtn, 1, 0)
+
+        hIntbtn = QPushButton()
+        hIntbtn.setText('Hard Int')
+        hIntbtn.clicked.connect(self.HardInt)
+        layout.addWidget(hIntbtn, 1, 1)
+
+        hIntbtn = QPushButton()
+        hIntbtn.setText('Reset ASIC')
+        hIntbtn.clicked.connect(self.ResetASIC)
+        layout.addWidget(hIntbtn, 2, 0)
+
+        self._testPage.setLayout(layout)
+        return self._testPage
+
+    ############################
+    ## Test specific Commands ##
+    ############################
+    def ScanDAC(self):
+        """
+        Looking for the correct reg load and latch period combinations to set the DAC
+        """
+        # over 2 V spike at 15 load val
+        loadVals = [v for v in range(100, 1001, 20)]
+        # loadVals = [100]
+        # latchVals = [v for v in range(50, 401, 20)]
+        latchVals = [200]
+        DAC_VAL = 4095 # attempt max
+
+        for load in loadVals:
+            for latch in latchVals:
+                time.sleep(0.15)
+                self.ResetDAC()
+                time.sleep(0.15)
+                print(f"setting load: {load}, latch val: {latch}")
+                self.SetSPILoad(load)
+                self.SetSPILatch(latch)
+                self.SetDAC(DAC_VAL)
+
+
+    def SetDAC(self, val):
+        """
+        Update value on the DAC
+        """
+        addr = QDA_CTRL_REG.SPI_DATA.value
+        self.eth.regWrite(addr, val)
+
+    def ResetDAC(self):
+        """
+        Send a high followed by a low pulse to the SPI_SRST port at addr 0x17
+        """
+        addr = QDA_CTRL_REG.SPI_RESET.value
+        val = 1
+        self.eth.regWrite(addr, val)
+
+        val = 0
+        self.eth.regWrite(addr, val)
+
+    def ResetASIC(self):
+        """
+        Send Digital reset
+        """
+        addr = QDA_CTRL_REG.SEND_DEBUG.value
+        val = 3
+        self.eth.regWrite(addr, val)
+
+    def SetSPILoad(self, val):
+        """
+        Configure the SPI load value
+        """
+        addr = QDA_CTRL_REG.SPI_LOAD_PERIOD.value
+        self.eth.regWrite(addr, val)
+
+    def SetSPILatch(self, val):
+        """
+        Configure the SPI latch value
+        """
+        addr = QDA_CTRL_REG.SPI_LATCH_PERIOD.value
+        self.eth.regWrite(addr, val)
+
+    def ReadDebug(self):
+        """
+        Read the Debug Bits
+        """
+        dVals = self.eth.regRead(QDA_CTRL_REG.READ_DEBUG.value)
+        dTxBusy = (dVals & (1 << 0)) > 0
+        dRxError = (dVals & (1 << 1)) > 0
+        dRxBusy = (dVals & (1 << 2)) > 0
+        dExtFifoFull = (dVals & (1 << 3)) > 0
+        dLocFifoFull = (dVals & (1 << 4)) > 0
+        dFsmState = (dVals & (0b111 << 5)) >> 5
+
+        print("status of ASIC: ")
+        if dTxBusy:
+            print("TX BUSY")
+        if dRxError:
+            print("Rx ERROR")
+        if dRxBusy:
+            print("RX BUSY")
+        if dExtFifoFull:
+            print("Ext FIFO Full")
+        if dLocFifoFull:
+            print("Loc FIFO Full")
+        print("FSM State: ", dFsmState)
+
+    def HardInt(self):
+        """
+        Try to force something out of the ASIC
+        """
+        print("sending hard int..")
+        addr = QDA_CTRL_REG.SEND_DEBUG.value
+        self.eth.regWrite(addr, 1)
+
 
     ############################
     ## Zybo specific Commands ##
@@ -182,6 +320,7 @@ class GUI(QMainWindow):
         fileMenu = menubar.addMenu('File')
         fileMenu.addAction(exitAct)
         fileMenu.addAction(saveAct)
+
 
     def SaveAs(self):
         """

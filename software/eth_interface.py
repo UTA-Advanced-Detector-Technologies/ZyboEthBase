@@ -15,7 +15,7 @@ from PyQt5.QtCore import QObject, QByteArray, pyqtSignal, QThread, QEventLoop
 from PyQt5.QtNetwork import QTcpSocket, QHostAddress, QUdpSocket
 
 # global defualts to configure connection to socket
-ETH_IP      = '192.169.1.27'
+ETH_IP      = '192.169.1.27' # set local ethernet port to 192.169.1.17 to connect
 ETH_PORT    = 42069
 BUFFER_SIZE = 1024
 
@@ -41,6 +41,9 @@ DMA_CTRL = 0x0001_1003
 DMA_STATUS = 0x0000_0000
 DMA_LENGTH = 0x0000_3fff
 DMA_DEST_MSB = 0x0000_0000
+
+class QDBBadAddr(Exception):
+    pass
 
 
 class DMA_STATUS_BIT(Enum):
@@ -228,7 +231,7 @@ class eth_interface(QObject):
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.udp_done)
 
-    def regRead(self, addr=REG) -> int:
+    def regRead(self, addr: REG) -> int:
         """
         read a Zybo register or a remote ASIC register as defined in REG class.
 
@@ -259,7 +262,7 @@ class eth_interface(QObject):
             return data
         else:
             print('WARNING: REG no data!')
-            return None
+            return -1
 
     def regWrite(self, addr, val) -> int:
         """
