@@ -98,6 +98,13 @@ architecture Behavioral of ZyboQDACtrl is
    signal fclk : std_logic;
    signal rst  : std_logic := '0';
 
+
+   -- SPI Ctrl
+   signal s_spi_sclk : std_logic;
+   signal s_spi_pclk : std_logic;
+   signal s_spi_srst : std_logic;
+   signal s_spi_sin  : std_logic;
+
    -- QDA Data node
    constant N_QDA_PORTS    : natural   := 4;
    constant TIMESTAMP_BITS : natural   := 32;
@@ -392,10 +399,10 @@ begin
      DigReset      => DigReset,
 
      -- QDA SPI VCO
-     SPI_SCLK => SPI_SCLK,
-     SPI_PCLK => SPI_PCLK,
-     SPI_SRST => SPI_SRST,
-     SPI_SIN  => SPI_SIN,
+     SPI_SCLK => s_spi_sclk,
+     SPI_PCLK => s_spi_pclk,
+     SPI_SRST => s_spi_srst,
+     SPI_SIN  => s_spi_sin,
 
      -- QDA debug signals
      dFsmState    => dFsmState,
@@ -416,6 +423,21 @@ begin
      QDA_fifo_hits   => QDA_fifo_hits,
      QDA_fifo_ren    => QDA_fifo_ren
   );
+
+    -- turn the s_spi signals into a tri state, to ensure they're driven at
+    -- the pullup of 1.8 V
+    with s_spi_sclk select SPI_SCLK <=
+      'Z' when '1',
+      '0' when others;
+    with s_spi_pclk select SPI_PCLK <=
+      'Z' when '1',
+      '0' when others;
+    with s_spi_srst select SPI_SRST <=
+      'Z' when '1',
+      '0' when others;
+    with s_spi_sin select SPI_SIN <=
+      'Z' when '1',
+      '0' when others;
 
    ---------------------------------------------------
    -- QDA node, manage the 4 Tx / Rx lines from the QDA

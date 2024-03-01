@@ -136,23 +136,48 @@ class GUI(QMainWindow):
     def ScanDAC(self):
         """
         Looking for the correct reg load and latch period combinations to set the DAC
+        Per Gang: 16 bit word. 12 lowest are DAC. Bit<12> is used for power on and should be 'on'
         """
         # over 2 V spike at 15 load val
-        loadVals = [v for v in range(100, 1001, 20)]
-        # loadVals = [100]
+        loadVals = [400]
         # latchVals = [v for v in range(50, 401, 20)]
-        latchVals = [200]
-        DAC_VAL = 4095 # attempt max
+        latchVals = [400]
 
-        for load in loadVals:
-            for latch in latchVals:
-                time.sleep(0.15)
-                self.ResetDAC()
-                time.sleep(0.15)
-                print(f"setting load: {load}, latch val: {latch}")
-                self.SetSPILoad(load)
-                self.SetSPILatch(latch)
-                self.SetDAC(DAC_VAL)
+        ## setting the bits
+        print('scanning dac')
+        p_on = lambda x: ((x & 0x1) << 12)
+        dac_set = lambda x: (x & 0xffff)
+        cap_set = lambda x: ((x & 0x3) << 13)
+        def dac_setting(dac_val, power_on=True, cap=0x3):
+            return p_on(power_on) + dac_set(dac_val) + cap_set(cap)
+
+        def bit_rev(b, rng=0, sz=16):
+            """
+            Reverse the endian-ness of the bit stream if we want to
+            """
+            if not(isinstance(rng, int)) or not (isinstance(sz, int)):
+                return
+            if rng>=int(sz/2):
+                return b
+            else:
+                bp1 = rng
+                bp2 = sz - rng - 1
+                bv1 = b & (1 << bp1)
+                bv2 = b & (1 << bp2)
+                # if bv1 == bv2 there's nothing to do
+                if bv1 and not bv2: # downsize
+                    b = b + (1 << bp2) - (1 << bp1)
+                elif bv2 and not bv1: # upsize
+                    b = b - (1 << bp2) + (1 << bp1)
+                bit_rev(b, rng=rng+1, sz=sz)
+
+        dv = dac_setting(0xaaaa)
+        time.sleep(0.5)
+        self.ResetDAC()
+        self.SetSPILoad(loadVals[0])
+        self.SetSPILatch(latchVals[0])
+        time.sleep(0.5)
+        self.SetDAC(dv)
 
 
     def SetDAC(self, val):
@@ -247,7 +272,7 @@ class GUI(QMainWindow):
         data += highVal
         print(f"reg read val: {data:08x}")
 
-    def readReg(self):
+    def readReg(self, addr):
         """
         read a specific asic reg
         """

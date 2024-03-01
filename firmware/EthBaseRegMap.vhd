@@ -8,7 +8,7 @@ library work;
 entity EthBaseRegMap is
    generic (
       N_QDA_PORTS : natural := 4;
-		constant SPI_REGISTER_WIDTH : integer := 14; -- 12 DAC and 2 SW power down
+		constant SPI_REGISTER_WIDTH : integer := 16; -- 12 DAC and 2 SW power down
       Version : std_logic_vector(31 downto 0) := x"0000_0000"
    );
    port (
