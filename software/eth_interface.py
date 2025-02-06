@@ -145,7 +145,7 @@ class eth_interface(QObject):
         """
 
         # form byte message
-        args = ['QRR', addr]
+        args = ['I2C', addr]
         if isinstance(args, str): args = args.split(' ')
         hdr = args[0]+'\0'
         byte_arr = str.encode(hdr)
@@ -172,7 +172,7 @@ class eth_interface(QObject):
         print(f"writing {val:02x} to addr: {addr:06x}")
 
         # form byte message
-        args = ['QRW', addr, val]
+        args = ['I2C', addr, val]
         if isinstance(args, str): args = args.split(' ')
         hdr = args[0]+'\0'
         byte_arr = str.encode(hdr)
@@ -183,7 +183,7 @@ class eth_interface(QObject):
         # returns number of bytes written
         cnt = self._write(byte_arr)
         self._tcpsocket.waitForReadyRead(1000)
-        return cnt
+        return cn
 
     def _verify(self) -> bool:
         """
@@ -223,6 +223,7 @@ class eth_interface(QObject):
             data = self._tcpsocket.read(4)
             val = struct.unpack('<I', data)[0]
             self.data = val
+            print(f"{self.data:08x}")
 
         return self.data
 
